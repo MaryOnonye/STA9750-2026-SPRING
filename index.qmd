@@ -1,0 +1,34 @@
+---
+title: "Mary Ononye"
+---
+
+## Welcome
+
+I am a Master's student in Business Analytics at Baruch College with a focus on data analytics, research, and applied quantitative methods.
+
+My work explores how data can be used to drive better decision-making across business, public policy, and finance.
+
+This site showcases my course projects, research work, and analytical portfolio.
+
+::: {.text-center}
+![](mary-headshot.jpg){width=200px}
+:::
+
+### Areas of Interest
+
+- Data Analytics & Visualization  
+- Public Sector Data Systems  
+- Financial & Real Estate Analytics  
+- Applied Statistical Modeling  
+
+### Connect With Me
+
+- [LinkedIn](https://www.linkedin.com/in/maryucheononye/)
+- Email: ononyemaryuche@gmail.com
+
+```{r}
+#| include: false
+1+1
+```
+--------------
+Last Updated: `r format(Sys.time(), "%A %m %d, %Y at %H:%M%p")`
