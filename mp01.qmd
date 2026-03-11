@@ -1,0 +1,448 @@
+---
+title: "Mini-Project 01 - Assessing the Impact of SFFA on Campus Diversity One-Year Later"
+author: "maryononye"
+editor:
+    mode: source
+format:
+    html:
+        code-fold: true
+---
+
+## Introduction
+
+This mini-project examines patterns in college enrollment and student diversity using IPEDS data. The analysis focuses on how undergraduate and graduate enrollment vary across institutions, how Baruch College compares over time, and how changes in student demographics can be interpreted in relation to broader trends at institutions such as California public universities.
+
+## Data Acquisition and Preparation
+
+This section loads the required R packages and prepares the IPEDS dataset for analysis. In particular, I create indicator variables that identify institutions belonging to the CUNY system and public universities in California.
+
+```{r}
+library(tidyverse)
+library(stringr)
+library(skimr)
+library(gt)
+library(scales)
+```
+
+```{r}
+source("load_helpers.R")
+```
+
+
+```{r}
+IPEDS <- acquire_ipeds_data()
+```
+
+```{r}
+IPEDS <- IPEDS |>
+  mutate(is_cuny = str_detect(institution_name, "CUNY"))
+```
+
+
+```{r}
+head(IPEDS)
+```
+
+```{r}
+IPEDS <- IPEDS |>
+  mutate(
+    is_calpublic =
+      str_detect(institution_name, "University of California-") |
+      str_detect(institution_name, "California State")
+  )
+```
+To verify that the `is_calpublic` variable correctly identifies institutions in the University of California and California State systems, I generated a list of the institutions flagged by this variable.
+```{r}
+IPEDS |>
+  filter(is_calpublic) |>
+  distinct(institution_name) |>
+  arrange(institution_name)
+```
+
+## Exploratory Analysis
+
+Before performing the main analysis, I conducted an exploratory review of the dataset to better understand its structure, variable types, and overall distribution of values.
+
+```{r}
+glimpse(IPEDS)
+```
+
+```{r}
+skim(IPEDS)
+```
+The `glimpse()` function shows that the IPEDS dataset contains 219,316 observations and 25 variables.Most of the variables represent enrollment counts for different racial and gender groups and are stored as numeric values, while institution name and state are stored as character variables. The two variables created earlier, `is_cuny` and `is_calpublic`, are logical variables indicating whether an institution belongs to the CUNY system or the California public university systems.
+
+The `skim()` summary shows that there are no missing values in the enrollment variables and provides basic statistics such as means, standard deviations, and percentiles for each numeric column. These summaries confirm that the dataset appears to be properly formatted and ready for further analysis.
+
+```{r}
+IPEDS |> 
+  distinct(institution_name) |> 
+  nrow()
+```
+There are `r IPEDS |> distinct(institution_name) |> nrow() |> scales::comma()` distinct institutions in the dataset.
+
+```{r}
+IPEDS |>
+  filter(
+    str_detect(institution_name, "Baruch"),
+    year == 2024,
+    level == "all graduate"
+  )
+```
+
+```{r}
+IPEDS |>
+  filter(
+    str_detect(institution_name, "Baruch"),
+    year == 2024,
+    level == "all graduate"
+  ) |>
+  mutate(total_grad_students = rowSums(across(starts_with("enrollment")))) |>
+  select(institution_name, total_grad_students)
+```
+In 2024, CUNY Bernard M Baruch College had `r IPEDS |> filter(str_detect(institution_name,"Baruch"), year==2024, level=="all graduate") |> mutate(total_grad_students = rowSums(across(starts_with("enrollment")))) |> pull(total_grad_students) |> scales::comma()` graduate students enrolled.
+
+
+```{r}
+IPEDS |>
+  filter(
+    str_detect(institution_name, "Baruch"),
+    year == 2024,
+    level %in% c("all graduate", "all undergrad")
+  ) |>
+  mutate(total_students = rowSums(across(starts_with("enrollment")))) |>
+  summarise(total_students = sum(total_students))
+```
+In 2024, CUNY Bernard M Baruch College had `r IPEDS |> filter(str_detect(institution_name,"Baruch"), year==2024, level %in% c("all graduate","all undergrad")) |> mutate(total_students = rowSums(across(starts_with("enrollment")))) |> summarise(total_students = sum(total_students)) |> pull(total_students) |> scales::comma()` total students enrolled.
+
+```{r}
+IPEDS |>
+  filter(year == 2019) |>
+  mutate(total_female = rowSums(across(starts_with("enrollment_f")))) |>
+  select(institution_name, total_female) |>
+  arrange(desc(total_female)) |>
+  slice(1)
+```
+In 2019, the institution with the highest number of enrolled female students was `r IPEDS |> filter(year == 2019) |> mutate(total_female = rowSums(across(starts_with("enrollment_f")))) |> arrange(desc(total_female)) |> slice(1) |> pull(institution_name)` with `r IPEDS |> filter(year == 2019) |> mutate(total_female = rowSums(across(starts_with("enrollment_f")))) |> arrange(desc(total_female)) |> slice(1) |> pull(total_female) |> scales::comma()` female students.
+
+```{r}
+IPEDS |>
+  filter(
+    year == 2024,
+    level == "first year undergrad"
+  ) |>
+  mutate(
+    total_students = rowSums(across(starts_with("enrollment"))),
+    nhpi_students = enrollment_m_nhpi + enrollment_f_nhpi,
+    nhpi_fraction = nhpi_students / total_students
+  ) |>
+  filter(total_students > 1000) |>
+  select(institution_name, nhpi_fraction) |>
+  arrange(desc(nhpi_fraction)) |>
+  slice(1)
+```
+In 2024, the institution with over 1,000 first-year undergraduates that had the highest proportion of Native Hawaiian or Pacific Islander students was `r IPEDS |> filter(year == 2024, level == "first year undergrad") |> mutate(total_students = rowSums(across(starts_with("enrollment"))), nhpi_students = enrollment_m_nhpi + enrollment_f_nhpi, nhpi_fraction = nhpi_students / total_students) |> filter(total_students > 1000) |> arrange(desc(nhpi_fraction)) |> slice(1) |> pull(institution_name)` with a proportion of `r IPEDS |> filter(year == 2024, level == "first year undergrad") |> mutate(total_students = rowSums(across(starts_with("enrollment"))), nhpi_students = enrollment_m_nhpi + enrollment_f_nhpi, nhpi_fraction = nhpi_students / total_students) |> filter(total_students > 1000) |> arrange(desc(nhpi_fraction)) |> slice(1) |> pull(nhpi_fraction) |> scales::percent(accuracy = 0.01)`.
+
+```{r}
+IPEDS |>
+  filter(level == "all graduate") |>
+  mutate(total_grad = rowSums(across(starts_with("enrollment")))) |>
+  group_by(state) |>
+  summarise(total_grad_students = sum(total_grad)) |>
+  arrange(desc(total_grad_students)) |>
+  slice(1:5) |>
+  gt() |>
+  tab_header(
+    title = "Top Five States by Total Graduate Enrollment"
+  ) |>
+  fmt_number(
+    columns = total_grad_students,
+    decimals = 0
+  )
+```
+The five states with the highest number of graduate students across all institutions are California (`r comma(4475614)` students), New York (`r comma(3667601)` students), Texas (`r comma(2911827)` students), Illinois (`r comma(2329612)` students), and Pennsylvania (`r comma(2135193)` students).
+
+```{r}
+IPEDS |>
+  filter(
+    year == 2024,
+    level == "first year undergrad",
+    is_cuny == TRUE
+  ) |>
+  mutate(total_first_year = rowSums(across(starts_with("enrollment")))) |>
+  select(institution_name, total_first_year) |>
+  mutate(percent_total = total_first_year / sum(total_first_year)) |>
+  arrange(desc(total_first_year)) |>
+  gt() |>
+  tab_header(
+    title = "Distribution of First-Year Undergraduate Students Across CUNY Institutions (2024)"
+  ) |>
+  fmt_number(
+    columns = total_first_year,
+    decimals = 0
+  ) |>
+  fmt_percent(
+    columns = percent_total,
+    decimals = 2
+  )
+```
+In 2024, first-year undergraduate students were enrolled across multiple CUNY institutions. The largest share attended CUNY Borough of Manhattan Community College with `r comma(4718)` students (`r percent(0.1329, accuracy = 0.01)` of the total), followed by CUNY New York City College of Technology with `r comma(3585)` students (`r percent(0.1010, accuracy = 0.01)`), and CUNY Hunter College with `r comma(2897)` students (`r percent(0.0816, accuracy = 0.01)`). Other major contributors included CUNY City College and CUNY Bernard M. Baruch College, each enrolling just over `r comma(2500)` first-year undergraduate students.
+
+```{r}
+IPEDS |>
+  filter(
+    str_detect(institution_name, "Baruch"),
+    level == "all undergrad"
+  ) |>
+  mutate(total_undergrad = rowSums(across(starts_with("enrollment")))) |>
+  arrange(year) |>
+  mutate(
+    percent_change = (total_undergrad - lag(total_undergrad)) / lag(total_undergrad)
+  ) |>
+  select(year, total_undergrad, percent_change) |>
+ gt() |>
+  tab_header(
+    title = "Baruch Undergraduate Enrollment and Year-to-Year Growth (2010–2024)"
+  ) |>
+fmt_number(
+  columns = total_undergrad,
+  decimals = 0
+) |>
+fmt_percent(
+  columns = percent_change,
+  decimals = 2
+)
+```
+Baruch’s total undergraduate enrollment increased overall over the study period. Enrollment grew from `r comma(13120)` students in 2010 to `r comma(16496)` students in 2024. While there were some small declines in certain years, such as in 2012, 2016, and 2018, the general trend shows steady growth in undergraduate enrollment at the institution.
+```{r}
+IPEDS |>
+  filter(
+    year %in% c(2010, 2020),
+    level == "all undergrad"
+  ) |>
+  mutate(
+    total_students = rowSums(across(starts_with("enrollment"))),
+    white_students = enrollment_m_whit + enrollment_f_whit,
+    white_fraction = white_students / total_students
+  ) |>
+  filter(total_students > 1000) |>
+  select(institution_id, institution_name, year, white_fraction) |>
+  pivot_wider(
+    names_from = year,
+    values_from = white_fraction
+  ) |>
+  mutate(change = `2020` - `2010`) |>
+  arrange(change) |>
+  slice(1:5) |>
+ slice(1:5) |>
+gt() |>
+  tab_header(
+    title = "Institutions with the Largest Decline in White Undergraduate Share (2010–2020)"
+  ) |>
+fmt_percent(
+  columns = c(`2010`, `2020`, change),
+  decimals = 2
+)
+```
+The institutions where the fraction of white undergraduate students decreased the most between 2010 and 2020 include the University of the Cumberlands, where the share dropped from 82.25% to 12.41% (a decrease of 69.83 percentage points). Other institutions with large declines include Southeastern Community College, New England Institute of Technology, Saint Joseph's College of Maine, and Montcalm Community College. These results indicate substantial shifts in the racial composition of undergraduate student populations at these institutions over the decade.
+
+```{r}
+IPEDS |>
+  filter(
+    year %in% c(2010, 2024),
+    level == "all undergrad"
+  ) |>
+  mutate(
+    total_students = rowSums(across(starts_with("enrollment"))),
+    female_students = rowSums(across(starts_with("enrollment_f"))),
+    female_fraction = female_students / total_students
+  ) |>
+  group_by(state, year) |>
+  summarise(
+    female_fraction = mean(female_fraction),
+    .groups = "drop"
+  ) |>
+  pivot_wider(
+    names_from = year,
+    values_from = female_fraction
+  ) |>
+  mutate(change = `2024` - `2010`) |>
+  arrange(desc(change)) |>
+  slice(1:3) |>
+  slice(1:3) |>
+gt() |>
+  tab_header(
+    title = "States with the Largest Increase in Female Undergraduate Enrollment Share (2010–2024)"
+  ) |>
+fmt_percent(
+  columns = c(`2010`, `2024`, change),
+  decimals = 2
+)
+```
+The states where the fraction of female undergraduate students increased the most between 2010 and 2024 were the Federated States of Micronesia (FM), American Samoa (AS), and Utah (UT). In the Federated States of Micronesia, the female share increased from 53.72% in 2010 to 62.87% in 2024, a rise of 9.15 percentage points. American Samoa saw a similar increase of 9.03 percentage points, while Utah experienced an increase of 5.31 percentage points over the same period. These results suggest that female representation among undergraduate students has grown noticeably in these states during the study period.
+
+To further examine how institutional demographics compare to national trends, I computed the Kullback–Leibler (KL) divergence between each institution’s racial distribution and the overall national undergraduate distribution.
+
+```{r}
+# 1. Filter 2024 undergraduate data
+undergrad_2024 <- IPEDS |>
+  filter(
+    year == 2024,
+    level == "all undergrad"
+  ) |>
+  mutate(
+    total_students = rowSums(across(starts_with("enrollment")))
+  ) |>
+  filter(total_students >= 1000)
+
+# 2. National distribution of racial groups
+national_dist <- undergrad_2024 |>
+  summarise(
+    across(starts_with("enrollment"), sum)
+  ) |>
+  mutate(
+    across(everything(), ~ .x / sum(c_across(everything())))
+  )
+
+# 3. Institutional racial distributions
+inst_dist <- undergrad_2024 |>
+  mutate(
+    across(starts_with("enrollment"), ~ .x / total_students)
+  )
+
+# 4. KL divergence calculation
+kl_results <- inst_dist |>
+  rowwise() |>
+  mutate(
+    kl_divergence = sum(
+      c_across(starts_with("enrollment")) *
+      log(
+        c_across(starts_with("enrollment")) /
+        unlist(national_dist)
+      ),
+      na.rm = TRUE
+    )
+  ) |>
+  ungroup()
+
+# 5. Find most representative institutions
+kl_results |>
+  select(institution_name, kl_divergence) |>
+  arrange(kl_divergence) |>
+  slice(1:3) |>
+ gt() |>
+  tab_header(
+    title = "Institutions Most Representative of the National Undergraduate Population (2024)"
+  ) |>
+  fmt_number(
+    columns = kl_divergence,
+    decimals = 4
+  )
+```
+To determine which institutions were most representative of the overall U.S. undergraduate population in 2024, the Kullback–Leibler (KL) divergence was calculated between each institution’s racial distribution and the national distribution of undergraduate students. KL divergence measures the difference between two probability distributions, with smaller values indicating a closer match. Because the metric is based on proportional distributions rather than raw counts, it allows institutions of different sizes to be compared fairly. Among institutions with at least 1000 undergraduate students, Colorado State University Global (KL = 0.0196), Santa Fe College (KL = 0.0206), and North Central Texas College (KL = 0.0207) had the smallest divergence values. This suggests that the racial composition of undergraduate students at these institutions most closely mirrors the overall national distribution in 2024.
+
+
+## Op-Ed Calculations
+
+```{r}
+baruch_enrollment <- IPEDS |>
+  filter(
+    str_detect(institution_name, "Baruch"),
+    level == "all undergrad"
+  ) |>
+  mutate(
+    total_undergrad = rowSums(across(starts_with("enrollment")))
+  ) |>
+  select(year, total_undergrad)
+```
+
+```{r}
+baruch_first_year <- IPEDS |>
+  filter(
+    str_detect(institution_name, "Baruch"),
+    year == 2024,
+    level == "first year undergrad"
+  ) |>
+  mutate(
+    total_first_year = rowSums(across(starts_with("enrollment")))
+  )
+```
+
+```{r}
+baruch_diversity <- IPEDS |>
+  filter(
+    str_detect(institution_name, "Baruch"),
+    level == "all undergrad"
+  ) |>
+  mutate(
+    total_students = rowSums(across(starts_with("enrollment"))),
+    white_students = enrollment_m_whit + enrollment_f_whit,
+    asian_students = enrollment_m_asia + enrollment_f_asia,
+    diversity_fraction = 1 - ((white_students + asian_students) / total_students)
+  ) |>
+  select(year, diversity_fraction)
+```
+
+
+```{r, fig.cap="Baruch undergraduate enrollment from 2010–2024."}
+IPEDS |>
+  filter(
+    str_detect(institution_name, "Baruch"),
+    level == "all undergrad"
+  ) |>
+  mutate(
+    total_students = rowSums(across(starts_with("enrollment")))
+  ) |>
+  ggplot(aes(x = year, y = total_students)) +
+  geom_line(color = "steelblue", linewidth = 1) +
+  geom_point() +
+  labs(
+    title = "Total Undergraduate Enrollment at Baruch College, 2010-2024",
+    x = "Year",
+    y = "Total Undergraduate Students"
+  )
+```
+The visualization shows that Baruch’s undergraduate enrollment has generally increased over time, with only minor fluctuations in a few years. Overall, the trend suggests steady growth in the size of the undergraduate population over the 2010–2024 period.
+
+## Final Insights and Deliverable - Op-Ed
+
+### Perspective of the Baruch College President
+
+Anyone who spends even a short amount of time on the Baruch campus quickly realizes that there is no single “typical” Baruch student. Walk through the Newman Vertical Campus between classes and you will hear dozens of languages, see students representing every corner of New York City, and meet people whose educational journeys took very different paths before arriving here. In many ways, Baruch reflects the city that surrounds it.
+
+When we talk about diversity at Baruch, it is important to be clear about what we mean. For the purposes of this discussion, I define diversity as the proportion of undergraduate students who identify as non-White and non-Asian. This definition is commonly used in higher-education research to capture representation among groups that have historically been underrepresented in American colleges and universities.
+
+Today, Baruch enrolls approximately `r comma(baruch_enrollment$total_undergrad[baruch_enrollment$year == 2024])` undergraduate students. That number alone tells only part of the story. What makes Baruch unique is not just how many students attend, but who they are and where they come from. Our campus brings together students from across New York City and far beyond, many of whom are the first in their families to attend college.
+
+Each fall, a new class of students arrives with their own ambitions, experiences, and expectations. In 2024, Baruch welcomed `r comma(baruch_first_year$total_first_year)` first-year undergraduate students. These students represent the next generation of business leaders, analysts, entrepreneurs, and public servants. They also reflect the changing demographics of both New York City and the broader United States.
+
+Looking at enrollment over time, Baruch has experienced steady growth. In 2010, the college enrolled `r comma(baruch_enrollment$total_undergrad[baruch_enrollment$year == 2010])` undergraduate students. By 2024, that number had increased to `r comma(baruch_enrollment$total_undergrad[baruch_enrollment$year == 2024])`. Growth alone, however, is not the most important story. What matters more is how the composition of our student body has evolved alongside the city we serve.
+
+New York City has long been one of the most diverse places in the world, and Baruch reflects that reality. Over time, the proportion of students from historically underrepresented backgrounds has gradually increased, contributing to classrooms where students bring different perspectives, cultural experiences, and ideas to the conversation. In fact, non-White and non-Asian students represented approximately `r percent(baruch_diversity$diversity_fraction[baruch_diversity$year == 2024])` of Baruch’s undergraduate population in 2024.
+
+Of course, it is important to put these trends in context. One way to do this is to compare them with institutions in states like California. Public universities in California have operated for decades under restrictions that prohibit race-based admissions policies. Because those policies did not recently change, shifts in their student demographics can serve as a useful benchmark. If institutions elsewhere experience changes similar to those in California, the differences may simply reflect broader demographic shifts rather than policy changes alone.
+
+In other words, changes in diversity should not be interpreted in isolation. They must be understood in the context of national demographic trends, access to higher education, and the evolving composition of the communities universities serve.
+
+Ultimately, diversity at Baruch is not simply a statistic to track in a spreadsheet. It is something that shapes everyday life on campus: the conversations that happen in classrooms, the perspectives students bring to group projects, and the way graduates carry those experiences into the workforce.
+
+As president, I see diversity not as a goal that can ever be fully “achieved,” but as an ongoing commitment. Our responsibility is to ensure that Baruch remains a place where talented students from many different backgrounds can find opportunity, challenge themselves academically, and prepare for leadership in an increasingly complex world.
+
+In a city defined by its diversity, Baruch’s strength lies in reflecting that reality. Our task moving forward is simple but important: continue opening doors, continue learning from one another, and continue building a campus community that looks like the world our students will one day lead.
+
+
+
+
+::: {.callout-note title="AI Usage Statement" collapse="true"}
+
+Generative AI tools were used only to assist with debugging R code and understanding how to implement specific programming functions (such as dplyr transformations and table formatting). All written explanations, interpretations, and the Op-Ed included in this report were written and edited by the author without AI assistance. AI was not used to generate or edit any non-code narrative text in this assignment.
+
+:::
+
+------------------------------------------------------------------------
+
+This work ©2025 by Mary Ononye was initially prepared as a Mini-Project for
+STA 9750 at Baruch College. More details about this course can be found at
+[the course site](https://michael-weylandt.com/STA9750) and instructions for
+this assignment can be found at 
+[MP #01](https://michael-weylandt.com/STA9750/mini/mini01.html)
