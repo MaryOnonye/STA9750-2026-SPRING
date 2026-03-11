@@ -8,6 +8,14 @@ format:
         code-fold: true
 ---
 
+```{r}
+knitr::opts_chunk$set(
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+
 ## Introduction
 
 This mini-project examines patterns in college enrollment and student diversity using IPEDS data. The analysis focuses on how undergraduate and graduate enrollment vary across institutions, how Baruch College compares over time, and how changes in student demographics can be interpreted in relation to broader trends at institutions such as California public universities.
