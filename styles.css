@@ -1,0 +1,19 @@
+.navbar {
+  background-color: #8f4c6b !important;
+}
+
+body {
+  background: linear-gradient(135deg, #7fb3d5 0%, #8e8cc7 50%, #a86c8f 100%);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #f8f9fa;
+}
+
+p, li {
+  color: #f8f9fa;
+}
+
+details summary {
+  color: #f8f9fa;
+}
