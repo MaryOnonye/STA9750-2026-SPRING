@@ -1,0 +1,67 @@
+carmine-montaperto:
+  evaluator: maryononye
+  teammate: carmine-montaperto
+  n_questions: 5
+  questions:
+    OQ: 5
+    SQ: 5
+    DS: 5
+    RR: 5
+    PR: 5
+  overall_comments:
+    positive: Great presentation and public speaking skills.
+    negative: None so far, he's been great.
+    advice: He is already doing a great job.
+    instructor: 'No'
+  cycle: mid
+izabellediaz20:
+  evaluator: maryononye
+  teammate: izabellediaz20
+  n_questions: 5
+  questions:
+    OQ: 5
+    SQ: 5
+    DS: 5
+    RR: 5
+    PR: 5
+  overall_comments:
+    positive: She's very creative and easy to work with.
+    negative: None, she's easy to work with.
+    advice: She's already contributing her best so far.
+    instructor: 'No'
+  cycle: mid
+kevmarcel0:
+  evaluator: maryononye
+  teammate: kevmarcel0
+  n_questions: 5
+  questions:
+    OQ: 5
+    SQ: 5
+    DS: 5
+    RR: 5
+    PR: 5
+  overall_comments:
+    positive: He puts intentional effort into his assigned tasks,
+    negative: None, he does his job on time and gives quality inputs.
+    advice: He's genuinely been a great teammate.
+    instructor: 'No'
+  cycle: mid
+kiran1051998:
+  evaluator: maryononye
+  teammate: kiran1051998
+  n_questions: 5
+  questions:
+    OQ: 5
+    SQ: 5
+    DS: 5
+    RR: 5
+    PR: 5
+  overall_comments:
+    positive: His programming background is really valuable and thus helpful in terms
+      of feedback with our analysis and how to approach things.
+    negative: None, he does a great job and contributes meaningfuly.
+    advice: Keep up the great work.
+    instructor: 'No'
+  cycle: mid
+evaluator: maryononye
+

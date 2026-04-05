@@ -1,0 +1,274 @@
+peer_feedback_assignment_1:
+  issue_number: 25
+  issue_owner: carmine-montaperto
+  issue_ok: yes
+  issue_status: OK
+  overall_comments:
+    positive: op-ed and conclusion. One notable strength is the op-ed itself. I liked
+      that you didn’t force strong conclusions from limited data and actually pointed
+      that out instead of overreaching. It made the analysis feel more honest. I also
+      thought the way you explained the difference between first-year students and
+      the overall undergraduate population was really clear. Breaking that down helped
+      make sense of why changes show up differently across the data, and it showed
+      you were actually thinking through what the numbers mean rather than just reporting
+      them.
+    negative: One area to improve would be adding more explanation throughout the
+      analysis. Right now, the key ideas mostly come through at the end, but it would
+      be easier to follow if you briefly explained what each step or result shows
+      as you go along. Even a few sentences connecting the outputs to your overall
+      question would make the whole project feel more complete.
+    advice: Concrete steps would be to add a few short sentences before or after each
+      major table explaining what you’re looking at and why it matters, expand the
+      introduction to briefly set up the goal of the analysis, and add section headers
+      or transitions so the flow feels clearer. It would also help to give tables
+      simple titles e.g “Diversity Trends Over Time” and briefly point out the key
+      takeaway.
+  scores:
+    Written Communication:
+      score: 6.0
+      comment: The conclusion is solid and shows you understand what you did, but
+        the rest of the report is mostly code and output with very little explanation.
+        The intro is only one sentence, and there aren’t really any written transitions
+        or context throughout, so it’s hard to follow your thought process as a reader.
+        I found myself having to figure things out from the code instead of being
+        guided through it. Adding a few sentences here and there to explain what you’re
+        doing and why would make a big difference.
+    Project Skeleton:
+      score: 6.0
+      comment: The main sections are there, like the introduction, data steps, and
+        conclusion, but some parts feel too minimal. The introduction is only one
+        sentence, which doesn’t really set up the project, and the analysis section
+        is mostly code chunks without any written buildup between steps. It also jumps
+        straight from code output to the final conclusion without clearly breaking
+        down the key findings along the way. So while the structure exists, it feels
+        a bit incomplete and not fully developed.
+    Tables & Document Presentation:
+      score: 6.0
+      comment: There are a couple tables that are formatted nicely, which I liked,
+        but most of the outputs are still just raw R tables. It’s not always clear
+        what I’m supposed to take away from each one, especially since there aren’t
+        titles or much explanation around them. The whole thing feels a bit code-heavy,
+        so the tables don’t really stand out as key results. A bit more consistency
+        and context would make it much easier to follow.
+    Data Visualization:
+      score: 10.0
+      comment: DEFAULT SCORE
+    Exploratory Data Analysis:
+      score: 10.0
+      comment: DEFAULT SCORE
+    Code Quality:
+      score: 7.0
+      comment: The code is mostly clean and organized, and I like that it’s split
+        into clear sections. The custom function was a nice touch too. But some parts
+        feel a bit repetitive, and there aren’t many comments explaining key choices,
+        so it’s not always easy to follow the thinking behind the code.
+    Data Preparation:
+      score: 10.0
+      comment: DEFAULT SCORE
+    Analysis and Findings:
+      score: 6.0
+      comment: The op-ed and conclusion are thoughtful and show a clear understanding
+        of the topic, especially in how the results are interpreted without overgeneralizing.
+        The main ideas come through well there. What holds it back slightly is that
+        some of the findings could be connected more directly to the earlier analysis,
+        so it feels a bit like the insights come mostly at the end rather than being
+        built up step by step.
+    Extra Credit:
+      score: 0.0
+      comment: He did not do any of the extra credit parts.
+  mp_number: 1
+peer_feedback_assignment_2:
+  issue_number: 28
+  issue_owner: helly101-1
+  issue_ok: yes
+  issue_status: OK
+  overall_comments:
+    positive: One notable strength is how clearly you followed the required steps
+      of the assignment. The creation of variables like is_cuny and is_calpublic,
+      along with listing the corresponding schools, was done in a straightforward
+      and logical order. It made it easy to see that each part of the task was addressed
+      without confusion.
+    negative: One area to improve would be the table formatting and the introduction.
+      The tables are readable, but they mostly look like default output and could
+      be improved with clearer titles or small formatting changes to make the key
+      information stand out. Also, the report would benefit from a proper introduction
+      to set up what the analysis is about before going into the code, so the reader
+      has more context from the start.
+    advice: add a short introduction (2–3 sentences) at the beginning explaining the
+      goal of the analysis, and improve the tables by giving them clear titles and
+      making small formatting adjustments (like renaming columns or highlighting key
+      values). It would also help to add one or two sentences after each table explaining
+      what the reader should take away from it.
+  scores:
+    Written Communication:
+      score: 7.0
+      comment: The writing is generally clear and easy to follow, and there is some
+        explanation throughout the report, which helps. But it doesn’t really have
+        a proper introduction, so it feels like it jumps straight into the work without
+        setting things up. There are also a few places where the explanation could
+        go a bit deeper, especially when connecting results back to the main question.
+        Overall, it’s understandable, but could be stronger with more structure and
+        context.
+    Project Skeleton:
+      score: 7.0
+      comment: The overall structure is there and it follows a logical flow, so it
+        feels like a complete submission. That said, some sections could be a bit
+        more developed, especially at the beginning to help set up the project more
+        clearly.
+    Tables & Document Presentation:
+      score: 5.0
+      comment: The tables are clean and easy to read, but they look like default output
+        rather than something intentionally formatted for presentation. There aren’t
+        titles or clear takeaways attached to them, so it’s not always obvious what
+        the reader should focus on. They work, but with a bit more customization and
+        context, they could stand out more.
+    Data Visualization:
+      score: 10.0
+      comment: DEFAULT SCORE
+    Exploratory Data Analysis:
+      score: 10.0
+      comment: DEFAULT SCORE
+    Code Quality:
+      score: 7.0
+      comment: The code is organized and easy to follow, Some parts get a bit long
+        and dense, so breaking them up would make it even clearer.
+    Data Preparation:
+      score: 10.0
+      comment: DEFAULT SCORE
+    Analysis and Findings:
+      score: 7.0
+      comment: The findings are clear, and the report does a good job pointing out
+        patterns in the data instead of just listing numbers. I also liked that the
+        analysis stayed focused on the main question.
+    Extra Credit:
+      score: 3.0
+      comment: 2 points for entropy an 1 point for a visualization.
+  mp_number: 1
+peer_feedback_assignment_3:
+  issue_number: 34
+  issue_owner: felisita101
+  issue_ok: no
+  issue_status: Incorrect URL submitted
+  overall_comments:
+    positive: how clearly the key trends are identified in the write-up. The explanation
+      is straightforward and easy to follow, and it focuses on the main changes in
+      the data without overcomplicating things.
+    negative: One area for improvement would be adding clearer section breakdowns
+      and expanding the explanation of the findings. Right now, everything flows together,
+      so it would help to separate parts like introduction, analysis, and conclusion
+      more clearly. It could also go a bit further in explaining why the trends matter,
+      not just what changed.
+    advice: add clear section headers (like Introduction, Analysis, and Conclusion)
+      so the report feels more structured. Add the op-ed as well.
+  scores:
+    Written Communication:
+      score: 5.0
+      comment: The steps are clearly shown, but there isn’t much explanation of what
+        the results mean. The assignment also mentions including an op-ed, but that
+        part is missing here. Adding a bit more context and a short wrap-up would
+        make the write-up feel more complete.
+    Project Skeleton:
+      score: 5.0
+      comment: The core steps are there, but the project is missing clear sections
+        like an introduction, analysis breakdown, and a final op-ed or conclusion.
+        Everything is there in terms of tasks, but it’s not really structured into
+        distinct parts, so it feels more like a sequence of steps than a fully organized
+        report.
+    Tables & Document Presentation:
+      score: 7.0
+      comment: The tables are clearly formatted. Including percentage change was especially
+        helpful for understanding the differences. The layout is clean and readable
+        overall.
+    Data Visualization:
+      score: 10.0
+      comment: DEFAULT SCORE
+    Exploratory Data Analysis:
+      score: 10.0
+      comment: DEFAULT SCORE
+    Code Quality:
+      score: 7.0
+      comment: The main steps are there and the code does get the job done, especially
+        with the summary tables and percent change setup.The main steps are there
+        and the code does get the job done, especially with the summary tables and
+        percent change setup.  What brings it down a bit is that the code feels pretty
+        repetitive in places, some chunks are very long, and the formatting could
+        be cleaner to make it easier to read and follow.
+    Data Preparation:
+      score: 10.0
+      comment: DEFAULT SCORE
+    Analysis and Findings:
+      score: 7.0
+      comment: The main trends are clearly identified, and the write-up does a good
+        job pointing out how different groups changed over time without overcomplicating
+        it. The summary is straightforward and easy to understand. To make it stronger,
+        it could go a bit further in explaining why those changes matter or what they
+        suggest beyond just describing the pattern.
+    Extra Credit:
+      score: 0.0
+      comment: No extra credit work was completed.
+  mp_number: 1
+peer_feedback_assignment_4:
+  issue_number: 38
+  issue_owner: asarker00
+  issue_ok: yes
+  issue_status: OK
+  overall_comments:
+    positive: The op-ed. It’s clearly written and does a good job connecting the data
+      back to the bigger question. Also the overall structure of the report. The sections
+      are clearly laid out—from data acquisition to cleaning, exploration, and the
+      final op-ed—so it’s easy to follow the flow of the analysis without getting
+      lost.
+    negative: One area for improvement would be adding more observations in the exploratory
+      analysis sections. The tasks are completed correctly, but they mostly just answer
+      the questions without really pointing out any patterns or insights from the
+      results.
+    advice: add 1–2 sentences after each exploratory task summarizing what the result
+      shows and why it matters. For example, after listing schools or creating variables,
+      briefly point out any patterns or interesting observations instead of moving
+      straight to the next step.
+  scores:
+    Written Communication:
+      score: 9.0
+      comment: The introduction is clear and sets up the purpose of the analysis really
+        well, and the explanations throughout (especially in the EDA and op-ed) make
+        it easy to follow what’s going on.It reads smoothly and feels intentional.
+    Project Skeleton:
+      score: 9.0
+      comment: The report is well organized with clear sections like introduction,
+        data acquisition, cleaning, exploration, analysis, and a final op-ed. It feels
+        complete and follows a logical flow from start to finish. Everything is where
+        you expect it to be
+    Tables & Document Presentation:
+      score: 8.0
+      comment: The tables are clean, well-formatted, and easy to read, especially
+        the CUNY enrollment table. The layout of the document is also very organized,
+        and the sections make it easy to navigate. One small improvement would be
+        adding short explanations or takeaways right after some tables to guide the
+        reader more.
+    Data Visualization:
+      score: 10.0
+      comment: DEFAULT SCORE
+    Exploratory Data Analysis:
+      score: 10.0
+      comment: DEFAULT SCORE
+    Code Quality:
+      score: 8.0
+      comment: The code is organized really well, the sections are clear, and it does
+        a good job building reusable pieces instead of just throwing everything into
+        one long script. I also liked that the later analysis clearly builds on variables
+        created earlier, so the workflow feels thought through.
+    Data Preparation:
+      score: 10.0
+      comment: DEFAULT SCORE
+    Analysis and Findings:
+      score: 8.0
+      comment: The op-ed is strong and does a good job actually interpreting the results
+        instead of just describing them. I liked how it explains the difference between
+        first-year and overall enrollment and uses that to support the argument. It
+        feels thoughtful and grounded.
+    Extra Credit:
+      score: 0.0
+      comment: No extra credit work was done.
+  mp_number: 1
+evaluator: maryononye
+
