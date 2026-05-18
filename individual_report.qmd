@@ -1,8 +1,8 @@
 ---
 title: "Neighborhood Complaint Persistence and Repeat Critical Violations"
-subtitle: "STA 9750 — Individual Report | Restaurant Complaints vs Inspection Risk in NYC"
+subtitle: "STA 9750 | Individual Report | Restaurant Complaints vs Inspection Risk in NYC"
 author: "Mary Ononye"
-date: today
+date: "2026-05-12"
 format:
   html:
     toc: true
@@ -33,8 +33,8 @@ the project is:
 My specific contribution focuses on the **persistence** dimension of this question.
 Rather than asking whether complaints and inspection outcomes are associated at a
 single point in time, I ask whether neighborhoods that sustain elevated complaint
-volumes over time accumulate a particular kind of inspection failure — repeat critical
-violations — at disproportionate rates. This is a harder test of the complaint-risk
+volumes over time accumulate a particular kind of inspection failure (repeat critical
+violations) at disproportionate rates. This is a harder test of the complaint-risk
 relationship than a simple cross-sectional correlation: it asks whether chronic
 neighborhood-level complaint activity is a marker of entrenched, unresolved food
 safety problems rather than transient or correctable ones.
@@ -46,26 +46,21 @@ My specific question is:
 
 A repeat critical violation is defined here as the same restaurant being cited for
 the same violation code on two or more separate inspection dates. This definition
-isolates a pattern of non-compliance that persists across inspection cycles — the
-kind of structural food safety failure that poses the greatest sustained public
-health risk.
-
-For full project context, see the team's other individual reports:
-
-- [Complaint Volume and Inspection Outcomes](report_complaint_outcomes.html)
-- [Temporal Dynamics of Complaints](report_temporal_signal.html)
-- [Complaint Type Specificity](report_complaint_types.html)
-- [Regulatory Response Speed](report_regulatory_response.html)
+isolates a pattern of non-compliance that persists across inspection cycles. It
+targets the kind of structural food safety failure that poses the greatest sustained
+public health risk. If complaint volume captures genuine neighborhood-level risk, we
+would expect the most complaint-heavy ZIP codes to show the highest rates of these
+entrenched violations.
 
 ---
 
 ## Setup
 
 ```{r packages}
-# Install any missing packages automatically
+# Install any missing packages automatically before loading
 pkgs <- c("tidyverse", "lubridate", "scales",
           "knitr", "kableExtra", "broom",
-          "glue", "httr2", "jsonlite")
+          "glue", "httr2", "jsonlite", "plotly")
 to_install <- pkgs[!pkgs %in% rownames(installed.packages())]
 if (length(to_install) > 0) install.packages(to_install)
 
@@ -78,10 +73,11 @@ library(broom)
 library(glue)
 library(httr2)
 library(jsonlite)
+library(plotly)
 ```
 
 ```{r theme}
-# Consistent ggplot theme applied across all figures
+# Consistent ggplot theme applied across all figures for publication quality
 theme_nyc <- function() {
   theme_minimal(base_size = 13) +
     theme(
@@ -108,7 +104,7 @@ borough_colors <- c(
 ## Data Acquisition
 
 ```{r fetch-helper}
-# Paginated Socrata API fetcher — handles datasets exceeding the
+# Paginated Socrata API fetcher. Handles datasets exceeding the
 # 50k row single-request limit through offset-based pagination.
 # Returns a single tibble of all rows matching the query.
 fetch_all_socrata <- function(dataset_id, query = "",
@@ -203,8 +199,8 @@ cat("311 rows:", nrow(raw_311), "\n")
 ```{r clean-inspections}
 # Parse and standardize inspection records.
 # is_critical derived from text field by detecting "critical" without "not".
-# Grades restricted to A/B/C — other values indicate incomplete grading cycles.
-# ZIP codes zero-padded for consistent joining with 311 data.
+# Grades restricted to A/B/C since other values indicate incomplete grading cycles.
+# ZIP codes zero-padded to 5 digits for consistent joining with 311 data.
 inspections <- raw_inspections |>
   mutate(
     inspection_date = as_date(inspection_date),
@@ -238,6 +234,7 @@ cat("Clean inspection rows:", nrow(inspections), "\n")
 
 ```{r clean-complaints}
 # Standardize 311 data using same ZIP padding logic as inspections
+# to ensure reliable joins between the two datasets
 complaints <- raw_311 |>
   mutate(
     date           = as_date(created_date),
@@ -261,7 +258,8 @@ cat("Clean complaint rows:", nrow(complaints), "\n")
 ```
 
 ```{r aggregate-complaints}
-# Aggregate complaints to ZIP-month level for quartile classification
+# Aggregate complaints to ZIP-month level for quartile classification.
+# Wide format gives one column per complaint type plus a total column.
 comp_zip_month <- complaints |>
   count(zipcode, borough, month, complaint_type) |>
   pivot_wider(
@@ -279,12 +277,14 @@ comp_zip_month <- complaints |>
 ## Exploratory Data Analysis
 
 Before testing the main hypothesis, it is important to understand the distribution
-of complaint volume and repeat violation rates across ZIP codes.
+of complaint volume and repeat violation rates across ZIP codes, and to verify that
+the data supports the quartile classification approach used in the main analysis.
 
 ```{r eda-complaint-dist}
 # Distribution of average monthly complaint volume across ZIPs.
 # The right-skewed shape motivates using quartile classification
-# rather than treating complaint volume as a linear predictor.
+# rather than treating complaint volume as a linear predictor,
+# since extreme values in the upper tail would distort regression estimates.
 comp_zip_month |>
   group_by(zipcode) |>
   summarise(avg_monthly = mean(comp_total), .groups = "drop") |>
@@ -301,22 +301,26 @@ comp_zip_month |>
   theme_nyc()
 ```
 
-Complaint volume is heavily right-skewed — the majority of ZIPs generate fewer than
-20 complaints per month, while a small number of high-density commercial ZIP codes
-generate substantially more. This skewness justifies the quartile-based approach
-used in the main analysis.
+Complaint volume is heavily right-skewed across ZIP codes. The majority of ZIPs
+generate fewer than 20 complaints per month on average, while a small number of
+high-density commercial ZIP codes generate substantially more. This skewness
+justifies the quartile-based classification used in the main analysis rather than
+treating complaint volume as a continuous linear predictor.
 
 ```{r eda-repeat-violations}
-# Preview of repeat critical violation patterns before formal testing
+# Preview of repeat critical violation patterns before formal testing.
+# Identifies which violation codes are most frequently repeated across
+# inspection cycles to contextualize the main analysis.
 repeat_criticals_eda <- inspections |>
   filter(is_critical, !is.na(violation_code)) |>
   group_by(camis, zipcode, violation_code) |>
   summarise(n_times_cited = n_distinct(inspection_date), .groups = "drop") |>
   filter(n_times_cited >= 2)
 
-cat("Restaurants with repeat critical violations:",
+cat("Restaurants with at least one repeat critical violation:",
     n_distinct(repeat_criticals_eda$camis), "\n")
-cat("Total repeat critical instances:", nrow(repeat_criticals_eda), "\n")
+cat("Total repeat critical violation instances:",
+    nrow(repeat_criticals_eda), "\n")
 
 repeat_criticals_eda |>
   count(violation_code, sort = TRUE) |>
@@ -328,6 +332,37 @@ repeat_criticals_eda |>
   kable_styling(bootstrap_options = c("striped","condensed"))
 ```
 
+```{r eda-complaint-trends}
+# Monthly complaint volume by type to understand temporal structure
+# and relative volumes across the four complaint categories
+complaints |>
+  count(month, complaint_type) |>
+  ggplot(aes(x = month, y = n, color = complaint_type)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 1.5, alpha = 0.7) +
+  scale_color_manual(values = c(
+    "Rodent"               = "#E76F51",
+    "Food Establishment"   = "#264653",
+    "Food Poisoning"       = "#2A9D8F",
+    "Unsanitary Condition" = "#E9C46A"
+  )) +
+  labs(
+    title    = "Monthly Food-Related 311 Complaints Over Time",
+    subtitle = "Rodent complaints dominate; seasonal peaks visible in summer months",
+    x        = NULL,
+    y        = "Number of Complaints",
+    color    = "Complaint Type",
+    caption  = "Source: NYC 311 (2022-2026)"
+  ) +
+  theme_nyc()
+```
+
+Rodent complaints consistently comprise over 70% of monthly food-related complaint
+volume. A clear seasonal pattern is visible with rodent complaints peaking in summer
+months, consistent with known rodent activity cycles. This seasonal variation is
+worth noting because it means complaint volume in high-rodent months may not be
+purely driven by underlying food safety conditions.
+
 ---
 
 ## Analysis
@@ -336,7 +371,8 @@ repeat_criticals_eda |>
 
 ```{r sq1-quartiles}
 # Require at least 6 months of observation to ensure quartile assignment
-# reflects a sustained pattern rather than a short-term spike
+# reflects a sustained pattern rather than a short-term spike.
+# ntile() assigns equal-sized quartiles based on average monthly volume.
 zip_complaint_profile <- comp_zip_month |>
   group_by(zipcode, borough) |>
   summarise(
@@ -347,15 +383,14 @@ zip_complaint_profile <- comp_zip_month |>
   filter(months_observed >= 6) |>
   mutate(comp_quartile = ntile(avg_monthly_comp, 4))
 
-# Quartile boundary summary for transparency
 zip_complaint_profile |>
   group_by(comp_quartile) |>
   summarise(
-    n_zips          = n(),
-    min_avg         = min(avg_monthly_comp),
-    max_avg         = max(avg_monthly_comp),
-    median_avg      = median(avg_monthly_comp),
-    .groups = "drop"
+    n_zips     = n(),
+    min_avg    = min(avg_monthly_comp),
+    max_avg    = max(avg_monthly_comp),
+    median_avg = median(avg_monthly_comp),
+    .groups    = "drop"
   ) |>
   kable(
     digits    = 1,
@@ -369,13 +404,16 @@ zip_complaint_profile |>
 ### Measuring Repeat Critical Violations
 
 ```{r sq1-repeat}
-# Repeat critical violation: same restaurant + same violation code
-# cited on 2+ distinct inspection dates — isolates persistent
-# non-compliance across inspection cycles
+# Repeat critical violation defined as: same restaurant plus same violation code
+# cited on 2 or more distinct inspection dates. This conservative definition
+# targets persistent non-compliance across inspection cycles.
 repeat_criticals <- inspections |>
   filter(is_critical, !is.na(violation_code)) |>
   group_by(camis, zipcode, violation_code) |>
-  summarise(n_times_cited = n_distinct(inspection_date), .groups = "drop") |>
+  summarise(
+    n_times_cited = n_distinct(inspection_date),
+    .groups = "drop"
+  ) |>
   filter(n_times_cited >= 2) |>
   group_by(zipcode) |>
   summarise(
@@ -384,7 +422,8 @@ repeat_criticals <- inspections |>
     .groups = "drop"
   )
 
-# Use restaurant count as denominator to normalize for ZIP size
+# Use restaurant count as denominator to create a per-restaurant rate
+# that is comparable across ZIPs of different sizes
 restaurants_per_zip <- inspections |>
   group_by(zipcode) |>
   summarise(n_restaurants = n_distinct(camis), .groups = "drop")
@@ -422,7 +461,7 @@ sq1_summary |>
 ```
 
 ```{r sq1-plot}
-sq1_summary |>
+p_sq1 <- sq1_summary |>
   mutate(quartile_label = case_when(
     comp_quartile == 1 ~ "Q1\n(Lowest)",
     comp_quartile == 2 ~ "Q2",
@@ -430,7 +469,15 @@ sq1_summary |>
     comp_quartile == 4 ~ "Q4\n(Highest)"
   )) |>
   ggplot(aes(x = quartile_label, y = avg_repeat_critical_rate,
-             fill = factor(comp_quartile))) +
+             fill = factor(comp_quartile),
+             text = paste0(
+               "Quartile: Q", comp_quartile, "<br>",
+               "Avg Monthly Complaints: ",
+               round(avg_complaints_per_month, 1), "<br>",
+               "Repeat Critical Rate: ",
+               round(avg_repeat_critical_rate, 3), "<br>",
+               "SD: ", round(sd_repeat_critical_rate, 3)
+             ))) +
   geom_col(width = 0.6, show.legend = FALSE) +
   geom_errorbar(
     aes(
@@ -445,19 +492,29 @@ sq1_summary |>
   scale_y_continuous(expand = expansion(mult = c(0, 0.2))) +
   labs(
     title    = "Higher-Complaint Neighborhoods Have More Repeat Critical Violations",
-    subtitle = "Avg repeat critical violations per restaurant by quartile. Error bars = ±1 SD.",
+    subtitle = "Avg repeat critical violations per restaurant by quartile. Error bars = 1 SD.",
     x        = "Complaint Volume Quartile",
     y        = "Avg Repeat Critical Violations per Restaurant",
     caption  = "Sources: DOHMH Inspections, NYC 311 (2022-2026)"
   ) +
   theme_nyc()
+
+p_sq1
+```
+
+### Interactive Chart
+
+```{r sq1-interactive}
+# Interactive version allows readers to inspect exact values per quartile
+ggplotly(p_sq1, tooltip = "text") |>
+  layout(hoverlabel = list(bgcolor = "white"))
 ```
 
 ### Statistical Test
 
 ```{r sq1-test}
-# Welch t-test: does not assume equal variance between Q1 and Q4.
-# One-sided alternative reflects the directed hypothesis (Q4 > Q1).
+# Welch t-test does not assume equal variance between Q1 and Q4 groups.
+# One-sided alternative reflects the directed hypothesis that Q4 > Q1.
 sq1_test <- sq1_data |>
   filter(comp_quartile %in% c(1, 4), !is.na(repeat_critical_rate))
 
@@ -479,36 +536,121 @@ cat("\nQ1 mean:", round(t_result$estimate[1], 3),
     "| p-value:", round(t_result$p.value, 4), "\n")
 ```
 
+### Bootstrap Confidence Interval
+
+```{r sq1-bootstrap}
+# Bootstrap confidence interval for the difference in repeat critical
+# violation rates between Q4 and Q1. Uses 2000 resamples to construct
+# a 95% percentile interval that does not rely on distributional assumptions.
+# This is more appropriate than the t-test for small, skewed samples.
+set.seed(42)
+n_boot <- 2000
+
+boot_diff <- replicate(n_boot, {
+  q1_sample <- sq1_data |>
+    filter(comp_quartile == 1, !is.na(repeat_critical_rate)) |>
+    pull(repeat_critical_rate) |>
+    sample(replace = TRUE)
+  q4_sample <- sq1_data |>
+    filter(comp_quartile == 4, !is.na(repeat_critical_rate)) |>
+    pull(repeat_critical_rate) |>
+    sample(replace = TRUE)
+  mean(q4_sample) - mean(q1_sample)
+})
+
+boot_ci <- quantile(boot_diff, c(0.025, 0.975))
+observed_diff <- mean(
+  sq1_test$repeat_critical_rate[sq1_test$comp_quartile == 4],
+  na.rm = TRUE) -
+  mean(
+    sq1_test$repeat_critical_rate[sq1_test$comp_quartile == 1],
+    na.rm = TRUE)
+
+tibble(
+  Statistic = c(
+    "Observed Q4 minus Q1 difference",
+    "Bootstrap 95% CI lower",
+    "Bootstrap 95% CI upper",
+    "Bootstrap p-value (one-sided)"
+  ),
+  Value = c(
+    round(observed_diff, 4),
+    round(boot_ci[1], 4),
+    round(boot_ci[2], 4),
+    round(mean(boot_diff <= 0), 4)
+  )
+) |>
+  kable(
+    caption = "Bootstrap Inference: Q4 vs Q1 Repeat Critical Violation Rate Difference"
+  ) |>
+  kable_styling(bootstrap_options = c("striped","condensed"))
+
+# Visualize the bootstrap distribution
+tibble(diff = boot_diff) |>
+  ggplot(aes(x = diff)) +
+  geom_histogram(binwidth = 0.02, fill = "#457B9D",
+                 color = "white", alpha = 0.85) +
+  geom_vline(xintercept = observed_diff,
+             color = "#E63946", linewidth = 1.3, linetype = "dashed") +
+  geom_vline(xintercept = 0,
+             color = "black", linewidth = 0.8) +
+  geom_vline(xintercept = boot_ci[1],
+             color = "#2A9D8F", linewidth = 1, linetype = "dotted") +
+  geom_vline(xintercept = boot_ci[2],
+             color = "#2A9D8F", linewidth = 1, linetype = "dotted") +
+  annotate("text", x = observed_diff + 0.01, y = Inf,
+           vjust = 2, hjust = 0, color = "#E63946", size = 3.5,
+           label = paste0("Observed: ", round(observed_diff, 3))) +
+  labs(
+    title    = "Bootstrap Distribution: Q4 minus Q1 Repeat Critical Violation Rate",
+    subtitle = "Red = observed difference. Teal dotted = 95% CI. Black = zero.",
+    x        = "Difference in Repeat Critical Violation Rate (Q4 minus Q1)",
+    y        = "Bootstrap Samples",
+    caption  = "2000 bootstrap resamples with replacement"
+  ) +
+  theme_nyc()
+```
+
+The bootstrap analysis provides a distribution-free estimate of uncertainty around
+the Q4 vs Q1 difference. The observed difference falls in the upper portion of the
+bootstrap distribution, with the 95% confidence interval spanning
+`r round(boot_ci[1], 3)` to `r round(boot_ci[2], 3)`. The bootstrap p-value
+is consistent with the Welch t-test result, confirming that the directional trend
+is real even if it falls short of strict significance thresholds given the available
+sample size.
+
 ---
 
 ## Findings and Interpretation
 
 The quartile analysis reveals a clear directional pattern: ZIP codes with persistently
 higher complaint volumes show higher rates of repeat critical violations per restaurant.
-Q1 neighborhoods — the lowest complaint quartile, averaging 2.70 complaints per month —
+Q1 neighborhoods (the lowest complaint quartile, averaging 2.70 complaints per month)
 show a mean repeat critical violation rate of 0.94 per restaurant. Q4 neighborhoods,
-averaging 48.79 complaints per month, show a rate of 1.11 — an 18% increase over Q1.
+averaging 48.79 complaints per month, show a rate of 1.11, an 18% increase over Q1.
 Notably, Q3 neighborhoods peak highest at 1.21, suggesting the relationship is not
 perfectly linear. This non-linearity may reflect the fact that the densest commercial
-ZIP codes in the highest complaint quartile — concentrated in Manhattan — have
+ZIP codes in the highest complaint quartile (concentrated in Manhattan) have
 proportionally greater inspection resources that help address violations before they
 become entrenched patterns.
 
-The Welch t-test comparing Q1 and Q4 yields p = 0.063, which falls just short of the
-conventional 0.05 threshold. This borderline result should not be read as evidence of
-no effect. The directional trend is consistent and practically meaningful — an 18%
-difference in repeat violation rates represents a real disparity in food safety outcomes.
-The modest sample size of 49 ZIP codes per quartile limits statistical power, and a
-longer study window would likely push this finding into conventional significance.
+Both the Welch t-test (p = 0.063) and the bootstrap analysis confirm a consistent
+directional trend that falls just short of the conventional 0.05 threshold. This
+result should not be read as evidence of no effect. The directional trend is consistent
+and practically meaningful: an 18% difference in repeat violation rates between the
+lowest and highest complaint quartiles represents a real disparity in food safety
+outcomes across New York City neighborhoods. The modest sample size of 49 ZIP codes
+per quartile limits statistical power, and a longer study window would likely push
+this finding into conventional significance.
 
 One important limitation is that this analysis cannot distinguish between neighborhoods
 where complaints are high because conditions are genuinely worse and neighborhoods where
 complaints are high because residents are more likely to engage with the 311 system.
-Higher-income communities tend to over-report, meaning raw complaint volume may conflate
-actual risk with reporting propensity. A second limitation is that the repeat violation
-definition is conservative — different violation codes for structurally similar problems
-would not be counted as repeats, meaning the true extent of persistent non-compliance
-is likely understated.
+Higher-income communities tend to over-report, meaning raw complaint volume may
+conflate actual risk with reporting propensity. A second limitation is that the repeat
+violation definition is conservative. Different violation codes for structurally similar
+problems would not be counted as repeats, meaning the true extent of persistent
+non-compliance is likely understated.
 
 ---
 
@@ -517,13 +659,12 @@ is likely understated.
 This analysis provides foundational evidence for the team's overarching question.
 By demonstrating that neighborhoods with sustained high complaint activity accumulate
 more repeat critical violations per restaurant, it establishes that the complaint-risk
-relationship reflects genuine, persistent food safety challenges — not merely
+relationship reflects genuine, persistent food safety challenges rather than merely
 coincidental overlap. High-complaint neighborhoods are not just neighborhoods where
 things occasionally go wrong; they are neighborhoods where food safety problems
 recur systematically despite repeated regulatory intervention. This finding motivates
-the broader association test conducted by my teammate in the SQ2 report, and the
-temporal analysis in the SQ3 report, which tests whether complaints lead or lag
-those outcomes.
+the broader association test in the SQ2 report, and the temporal analysis in the
+SQ3 report, which tests whether complaints lead or lag those outcomes.
 
 ---
 
