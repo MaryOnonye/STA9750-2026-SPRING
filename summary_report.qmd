@@ -1,8 +1,8 @@
 ---
 title: "Restaurant Complaints vs Inspection Risk in NYC"
 subtitle: "Do 311 Complaints Signal Food Safety Risk?"
-author: "Team 1"
-date: "2026-05-12"
+author: "Carmine Montaperto, Mary Ononye, Kevin Marcelin, Izabelle Diaz, Kiran Narsipur"
+date: "2026-05-21"
 format:
   html:
     toc: true
@@ -43,6 +43,17 @@ risk-based scheduling without additional cost. Third, equity: if lower-income
 neighborhoods generate fewer complaints due to reporting barriers, they may receive
 less inspection attention despite facing comparable or worse food safety conditions,
 representing a compounding of inequality that warrants attention.
+
+Our five specific analyses address this question from complementary angles. The first
+asks whether persistently high complaint neighborhoods accumulate more recurring
+critical violations over time. The second tests whether overall inspection scores
+are worse in higher-complaint ZIP codes after controlling for geography. The third
+examines whether complaint spikes predict future inspection deterioration or simply
+co-occur with it. The fourth identifies which complaint types carry the strongest
+signal about underlying violations. The fifth tests whether filing a complaint
+actually accelerates the regulatory response. Together these five analyses move from
+association to mechanism, building a comprehensive picture of how citizen complaints
+relate to food safety enforcement across New York City.
 
 Prior research has examined restaurant inspection systems and established that grades
 and violation rates are meaningful predictors of foodborne illness risk (Filion and
@@ -110,21 +121,23 @@ per restaurant, while the highest-complaint quartile (Q4) averaged 1.11, an 18%
 difference. The mid-range Q3 neighborhoods peaked highest at 1.21, suggesting the
 relationship is not perfectly linear. A statistical test comparing Q1 and Q4
 produced a p-value of 0.063, just short of conventional significance, but the
-directional trend is consistent and practically meaningful.
+directional trend is consistent and practically meaningful. A bootstrap confidence
+interval with 2,000 resamples confirmed this directional finding, with the observed
+difference sitting in the upper portion of the resampling distribution.
 
-![Higher-Complaint Neighborhoods Have More Repeat Critical Violations. Avg repeat critical violations per restaurant by complaint quartile, with error bars showing variability within each group. Sources: DOHMH Inspections, NYC 311 (2022-2026).](figures/sq1_plot.png)
+![Higher-Complaint Neighborhoods Have More Repeat Critical Violations. Avg repeat critical violations per restaurant by complaint quartile, with error bars showing variability within each group. Sources: DOHMH Inspections, NYC 311 (2022-2026).](docs/figures/sq1_plot.png)
 
 ### Higher Complaint Volume Predicts Worse Inspection Scores
 
 The second analysis took a broader view, asking whether overall inspection performance
 is worse in neighborhoods that generate more food-related complaints. Using a
 regression model that controlled for borough-level differences in restaurant density
-and demographics, we found that each doubling of complaint volume is associated with
-a 1.08-point increase in average inspection score. Since higher scores mean worse
-outcomes in the DOHMH system, this confirms that more-complained-about ZIP codes
-genuinely perform worse when inspectors arrive. The model explains 34% of the
-variation in inspection scores across ZIP codes, a substantial share for a
-neighborhood-level analysis.
+and demographics, we found that each time complaint volume doubles (meaning each time
+complaint volume doubles, the score increases by the same fixed amount), the average
+inspection score rises by 1.08 points. Since higher scores mean worse outcomes in
+the DOHMH system, this confirms that more-complained-about ZIP codes genuinely perform
+worse when inspectors arrive. The model explains 34% of the variation in inspection
+scores across ZIP codes, a substantial share for a neighborhood-level analysis.
 
 Brooklyn and Queens show significantly worse inspection outcomes than the Bronx
 baseline even after controlling for complaint volume. Manhattan, despite having the
@@ -133,7 +146,7 @@ Bronx once restaurant density is accounted for. This suggests that Manhattan's h
 complaint totals largely reflect its extraordinary concentration of restaurants rather
 than systematically worse food safety conditions.
 
-![More Complaints, Higher (Worse) Inspection Scores. Each point represents one ZIP code. The dashed line shows the overall positive trend. Color indicates borough. Sources: DOHMH Inspections, NYC 311 (2022-2026).](figures/sq2_scatter.png)
+![More Complaints, Higher (Worse) Inspection Scores. Each point represents one ZIP code. The dashed line shows the overall positive trend. Color indicates borough. Sources: DOHMH Inspections, NYC 311 (2022-2026).](docs/figures/sq2_scatter.png)
 
 ### Complaints and Violations Reflect the Same Conditions, Not a Causal Chain
 
@@ -165,7 +178,11 @@ Unsanitary Condition (r = 0.047). All four types point in the same direction. Th
 stronger performance of Food Establishment complaints likely reflects the breadth of
 the category: it captures a wide range of concerns about restaurant conditions, from
 visible cleanliness to food handling practices, making it a more comprehensive signal
-about overall restaurant quality than any single specific complaint type.
+about overall restaurant quality than any single specific complaint type. This breadth
+is also consistent with the strong aggregate association found in the second analysis:
+because Food Establishment complaints span so many dimensions of concern, total
+complaint volume driven largely by this category naturally predicts inspection scores
+across multiple outcome measures.
 
 From a policy perspective, this finding suggests that Food Establishment complaints
 may be the most useful signal for risk-based inspection targeting, despite being less
@@ -180,10 +197,10 @@ baseline gap between consecutive inspections.
 
 The baseline median gap between inspections is 315 days, roughly ten months. The
 median time from a food-related 311 complaint to the next inspection in the same
-ZIP code is just 4 days, 311 days faster. A statistical test confirms this difference
-is overwhelmingly significant. Food Poisoning complaints triggered the fastest
-response at a median of 3 days, while Rodent complaints were slightly slower at 5
-days. Across all complaint types, more than 90% of matched inspections occurred
+ZIP code is just 4 days, 311 days faster. A Wilcoxon signed-rank test confirms this
+difference is overwhelmingly significant. Food Poisoning complaints triggered the
+fastest response at a median of 3 days, while Rodent complaints were slightly slower
+at 5 days. Across all complaint types, more than 90% of matched inspections occurred
 within 30 days of the complaint.
 
 This finding should be interpreted with care. Our ZIP-level matching means some of
@@ -192,6 +209,8 @@ responses to the specific complaint. Even so, the magnitude of the difference is
 large to be explained by coincidence. The 311 system appears to be functioning as a
 genuine accelerant for regulatory action, translating citizen concern into measurably
 faster government response.
+
+![Complaints Trigger Dramatically Faster Inspections. Post-complaint inspections arrive in a median of 4 days compared to a 315-day baseline cycle. The distribution is overwhelmingly concentrated near zero. Sources: DOHMH Inspections, NYC 311 (2022-2026).](docs/figures/sq5_plot.png)
 
 ---
 
@@ -214,7 +233,14 @@ predicts a 1.08-point worsening in inspection score. Q4 neighborhoods show 18% m
 repeat critical violations than Q1. Post-complaint inspections arrive 311 days faster
 than the baseline cycle. These are not small or ambiguous effects: they represent
 real, measurable differences in food safety outcomes and regulatory responsiveness
-across New York City neighborhoods.
+across New York City neighborhoods. The null finding in Analysis 3 is consistent
+with the acceleration result in Analysis 5: because complaint-triggered inspections
+arrive within days rather than months, any regulatory response appears in the same
+or adjacent month rather than at a one-to-three month lag, which is exactly what the
+lagged correlation analysis would miss. And the finding that Food Establishment
+complaints are the strongest predictor in Analysis 4 is consistent with the strong
+aggregate association in Analysis 2, since Food Establishment complaints are the
+broadest category and drive much of the total complaint signal used in the regression.
 
 **Limitations.** Our ZIP-level analysis cannot establish causality. Reporting bias
 in 311 data likely understates complaint volume in lower-income areas. The Analysis 5
@@ -232,14 +258,21 @@ foodborne illness risk (Filion and Powell, 2009; CDC, 2023). Scholarship on 311 
 has shown that complaint volume reflects both genuine neighborhood conditions and
 socioeconomic reporting patterns (O'Brien, 2015; Kontokosta and Hong, 2021). The NYC
 Food Policy Center (2019) documented disparities in restaurant grading across income
-and race lines in New York City specifically.
+and race lines in New York City specifically. Taken together, these bodies of work
+establish the components of our analysis but do not connect them: prior studies treat
+inspections and complaints as separate phenomena rather than testing whether one
+predicts or shapes the other.
 
 Our contribution is to link these streams directly: combining DOHMH inspection data,
 311 complaint data, and demographic context to test whether complaints predict
 inspection outcomes and whether they accelerate regulatory response. This specific
 combination, tested in post-COVID New York using 2022-2026 data, has not been
 previously published. Prior work examined inspections and complaints separately;
-we test whether they are connected, how strongly, and through what mechanisms.
+we test whether they are connected, how strongly, and through what mechanisms. The
+null temporal finding from Analysis 3, far from weakening the project, actually
+enriches the interpretation by ruling out a simple causal chain and pointing instead
+toward a concurrent signaling model, which the acceleration evidence from Analysis 5
+then helps explain.
 
 ---
 
@@ -275,11 +308,11 @@ Full technical details for each analysis are available in the individual reports
 below. Each report includes all code needed to reproduce the analysis from scratch,
 exploratory data analysis, and extended discussion of methodology and limitations.
 
-- [Neighborhood Complaint Persistence and Repeat Critical Violations](report_neighborhood_risk.html)
-- [Complaint Volume and Inspection Outcome Association](report_complaint_outcomes.html)
-- [Temporal Dynamics of Complaints and Inspection Outcomes](report_temporal_signal.html)
-- [Complaint Type Specificity and Critical Violation Rates](report_complaint_types.html)
-- [Citizen Complaints and Regulatory Response Speed](report_regulatory_response.html)
+- [Persistent Neighborhood Complaint Activity and Repeat Critical Violations](https://carmine-montaperto.github.io/STA9750-2026-SPRING/individual_report.html)
+- [Complaint Volume and Inspection Outcome Association](https://maryononye.github.io/STA9750-2026-SPRING/individual_report.html)
+- [Do Food-Related 311 Complaints Predict Worse Restaurant Inspection Outcomes?](https://kevmarcel0.github.io/STA9750-2026-SPRING/individual_report_3.html)
+- [Complaint Type Specificity and Critical Violation Rates](https://izabellediaz20.github.io/STA9750-2026-SPRING/individual_report.html)
+- [Citizen Complaints and Regulatory Response Speed](https://kiran1051998.github.io/STA9750-2026-SPRING/Private-Project-main/Private-Project-main/all_teammate-individual_reports/t5/individual_report.html)
 
 ---
 
